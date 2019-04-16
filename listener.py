@@ -3,9 +3,9 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
 
-import json
 from pymongo import MongoClient
 
+import json
 from utils.json_files import load_json
 
 
@@ -20,9 +20,12 @@ class CustomListener(StreamListener):
     This listener inserts the tweets in a mongoDB collection of tweets.
     '''
 
-    def __init__(self, client, collection, hashtag_key):
-        self.client = client
-        self.collection = collection
+    def __init__(self, db, collection, hashtag_key, port=27017):
+        # Stablish connection with MongoDB
+        self.client = MongoClient('localhost', port)
+        self.db = self.client[db]
+        self.collection = self.db[collection]
+
         self.hashtag_key = hashtag_key.lower()
 
 
@@ -55,10 +58,7 @@ class CustomListener(StreamListener):
             return False
 
         finally:
-            client = MongoClient('localhost', 27017)
-            db = client[self.client]
-            collection = db[self.collection]
-            collection.insert(msg)
+            self.collection.insert(msg)
             return True
 
 
@@ -72,6 +72,7 @@ class CustomListener(StreamListener):
 # TODO: add sentiment analysis of a hashtag (e.g. Brexit)
 # TODO: add sentiment analysis of a user (e.g. Theresa May): tweetL = api.user_timeline(screen_name='sdrumm', tweet_mode="extended")
 # TODO: compare world vs UK
+# TODO: color countries by median sentiment
 
 # TODO: get full text
 
@@ -89,13 +90,13 @@ if __name__ == '__main__':
 
     keyword = 'brexit'
     hashtag = '#' + keyword
-    hashtag_list = [hashtag.capitalize(), hashtag.lower(), hashtag.upper()]
+    # hashtag_list = [hashtag.capitalize(), hashtag.lower(), hashtag.upper()]
 
     uk_location = [-12.0677673817, 49.9651490804, 1.785992384, 61.1291966094]
     world_location = [-180, -90, 180, 90]
 
     uk_listener = CustomListener(
-        client='tweets',
+        db='tweets',
         collection='uk_' + keyword,
         hashtag_key=keyword,
     )
@@ -103,7 +104,7 @@ if __name__ == '__main__':
     uk_stream = Stream(auth=auth, listener=uk_listener, tweet_mode='extended')
     uk_stream.filter(
         is_async=False,
-        track=hashtag_list,
+        track=[hashtag],
         languages=['en'],
         locations=uk_location,
     )

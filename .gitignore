@@ -103,6 +103,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Config files
+# Config folders
 config/
 scripts/
+
+# Data folders
+data/
+papers/
