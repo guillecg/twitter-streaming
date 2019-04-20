@@ -20,7 +20,7 @@ class CustomListener(StreamListener):
     This listener inserts the tweets in a mongoDB collection of tweets.
     '''
 
-    def __init__(self, db, collection, hashtag_key, port=27017):
+    def __init__(self, db, collection, hashtag_key, port=28895):
         # Stablish connection with MongoDB
         self.client = MongoClient('localhost', port)
         self.db = self.client[db]

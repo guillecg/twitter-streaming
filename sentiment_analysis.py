@@ -23,7 +23,6 @@ sns.set(style='white')
 
 from wordcloud import WordCloud
 
-
 # https://www.geeksforgeeks.org/twitter-sentiment-analysis-using-python/
 # https://towardsdatascience.com/multinomial-naive-bayes-classifier-for-text-analysis-python-8dd6825ece67
 # https://marcobonzanini.com/2015/05/17/mining-twitter-data-with-python-part-6-sentiment-analysis-basics/
@@ -44,6 +43,11 @@ class TextPreprocesser(object):
             ).split()
         )
 
+
+class SentimentAnalyser(TextPreprocesser):
+    def __init__(self):
+        pass
+
     def get_sentiment(self, text):
         ''' Utility function to classify sentiment of passed text using
         textblob's sentiment method
@@ -58,11 +62,6 @@ class TextPreprocesser(object):
             return 'neutral'
         else:
             return 'negative'
-
-
-class BoWClassifier(TextPreprocesser):
-    def __init__(self):
-        pass
 
 
 def plot_wordcloud(text):
@@ -88,25 +87,24 @@ def plot_wordcloud(text):
 
 
 if __name__ == '__main__':
-    client = MongoClient('localhost', port=27017)
+    client = MongoClient('localhost', port=28895)
     db = client['tweets']
     collection = db['uk_brexit']
 
     res = collection.find({}, {'_id': False})
     res = list(res[:])[:200]
 
-    clf = BoWClassifier()
+    analyser = SentimentAnalyser()
 
-    clean_tweets = [clf.clean_text(tweet['text']) for tweet in res]
-    sentiments = [clf.get_sentiment(tweet) for tweet in clean_tweets]
+    clean_tweets = [analyser.clean_text(tweet['text']) for tweet in res]
+    sentiments = [analyser.get_sentiment(tweet) for tweet in clean_tweets]
     sentiments_counter = Counter(sentiments)
 
     # Sort keys for the barplot palette
     key_order = ['positive', 'neutral', 'negative']
     sentiments_counter = {k : sentiments_counter[k] for k in key_order}
 
-    plot_wordcloud(clean_tweets)
-
+    # Sentiment plot
     sentiments_df = pd.DataFrame({
         'Sentiment': list(sentiments_counter.keys()),
         'Count': list(sentiments_counter.values()),
@@ -115,3 +113,6 @@ if __name__ == '__main__':
         x='Sentiment', y='Count', data=sentiments_df, palette='RdBu_r'
     )
     plt.show()
+
+    # Wordcloud
+    plot_wordcloud(clean_tweets)
