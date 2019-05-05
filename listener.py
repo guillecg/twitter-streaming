@@ -20,7 +20,7 @@ class CustomListener(StreamListener):
     This listener inserts the tweets in a mongoDB collection of tweets.
     '''
 
-    def __init__(self, db, collection, hashtag_key, port=28895):
+    def __init__(self, db, collection, hashtag_key, port=27017):
         # Stablish connection with MongoDB
         self.client = MongoClient('localhost', port)
         self.db = self.client[db]
@@ -69,8 +69,10 @@ class CustomListener(StreamListener):
             return False
 
 
+# TODO: get tweets between dates: https://github.com/Jefferson-Henrique/GetOldTweets-python
+
 # TODO: add sentiment analysis of a hashtag (e.g. Brexit)
-# TODO: add sentiment analysis of a user (e.g. Theresa May): tweetL = api.user_timeline(screen_name='sdrumm', tweet_mode="extended")
+# TODO: add sentiment analysis of a user (e.g. Theresa May): tweetL = api.user_timeline(screen_name='sdrumm', tweet_mode='extended')
 # TODO: compare world vs UK
 # TODO: color countries by median sentiment
 
@@ -94,17 +96,42 @@ if __name__ == '__main__':
 
     uk_location = [-12.0677673817, 49.9651490804, 1.785992384, 61.1291966094]
     world_location = [-180, -90, 180, 90]
+    eu_location = [-14.45, 32.15, 21.17, 57.96]
 
-    uk_listener = CustomListener(
+    # uk_listener = CustomListener(
+    #     db='tweets',
+    #     collection='uk_' + keyword,
+    #     hashtag_key=keyword,
+    # )
+    #
+    # uk_stream = Stream(auth=auth, listener=uk_listener, tweet_mode='extended')
+    # uk_stream.filter(
+    #     is_async=False,
+    #     track=[hashtag],
+    #     languages=['en'],
+    #     locations=uk_location,
+    # )
+
+    eu_listener = CustomListener(
         db='tweets',
-        collection='uk_' + keyword,
+        collection='eu_' + keyword,
         hashtag_key=keyword,
     )
 
-    uk_stream = Stream(auth=auth, listener=uk_listener, tweet_mode='extended')
-    uk_stream.filter(
+    eu_stream = Stream(auth=auth, listener=eu_listener, tweet_mode='extended')
+    eu_stream.filter(
         is_async=False,
         track=[hashtag],
         languages=['en'],
-        locations=uk_location,
+        locations=eu_location,
     )
+
+    # cursor = tweepy.Cursor(
+    #     api.search,
+    #     q=hashtag,
+    #     since='2019-01-01',
+    #     until='2019-04-30',
+    #     lang='en'
+    # ).items(7500)
+    # for tweet in cursor:
+    #     print(tweet)
